@@ -1,4 +1,4 @@
-import React, { useState,useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 function ExcelToXmlConverter() {
   const [xmlData, setXmlData] = useState(null);
   const fileInputRef = useRef(null);
+  const fileInputRefDownload = useRef(null);
 
 
 
@@ -28,13 +29,13 @@ function ExcelToXmlConverter() {
 
         // Scorrere le righe e colonne per estrarre i dati
         let row = startRow;
-        while (worksheet['E' + row]) {
+        while (worksheet['D' + row]) {
           const productID = worksheet['A' + row]?.v || '';
           const allocation = 0;
           const allocationTimestamp = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
           const perpetual = false;
           const preorderBackorderHandling = 'preorder';
-          const dateStr = worksheet['E' + row]?.w; // Assumi che il formato sia "YYYY-MM-DD"
+          const dateStr = worksheet['D' + row]?.w; // Assumi che il formato sia "YYYY-MM-DD"
           const parts = dateStr ? dateStr.split('-') : [];
           const year = parseInt(parts[0]);
           const month = parseInt(parts[1]) - 1; // Mese è 0-based
@@ -90,9 +91,12 @@ function ExcelToXmlConverter() {
     //react notify notifica success
     toast.success('File uploaded successfully');
   };
-    if (fileInputRef.current) {
-      fileInputRef.current.style.display = 'none';
-    }
+  if (fileInputRef.current) {
+    fileInputRef.current.style.display = 'none';
+  }
+  if (fileInputRefDownload.current) {
+    fileInputRefDownload.current.style.display = 'none';
+  }
   const downloadXmlFile = () => {
     if (xmlData) {
       const blob = new Blob([xmlData], { type: 'application/xml' });
@@ -107,20 +111,35 @@ function ExcelToXmlConverter() {
     }
   };
 
+  const downloadTemplate = () => {
+    const templateUrl = process.env.PUBLIC_URL + '/template.xlsx';
+    const a = document.createElement('a');
+    a.href = templateUrl;
+    a.download = 'template.xlsx';
+    a.click();
+  };
+
+
   return (
     <div className='preorder'>
+      <span className='emojis'>🧇</span>
       <h2>Preorder XML Generator</h2>
+      <p>Use this tool to generate preorder XML file to be imported on business manager.<br />
 
-      <input type="file" id="select-file"  className="select-file" accept=".xlsx"  onChange={handleFileChange} style={{ display: 'none' }} />
-      <label className='select-file-label' ref={fileInputRef}   htmlFor="select-file">UPLOAD CSV FILE</label>
+        Click <span className='download-underline' onClick={downloadTemplate} >here</span> to download the template </p>
+
+      <input type="file" id="select-file" className="select-file" accept=".xlsx" onChange={handleFileChange} style={{ display: 'none' }} />
+      <label className='select-file-label' ref={fileInputRef} htmlFor="select-file">UPLOAD YOUR EXCEL FILE </label>
+
       <ToastContainer />
 
       {xmlData && (
         <div>
           <div>
-            <button className='select-file-label' onClick={downloadXmlFile}>
-              <label>DOWNLOAD FILE</label>
+            <button className='select-file-label downloaded' onClick={downloadXmlFile}>
+              <label>DOWNLOAD FILE </label>
             </button>
+            <p><a className="upload-und" href="/">Upload a new file</a></p>
           </div>
         </div>
       )}
